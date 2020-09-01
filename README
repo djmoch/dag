@@ -1,0 +1,16 @@
+DAG - Djmoch's Automatic Generator
+==================================
+
+The goal of dag(1) is to create a static site generator that's as
+Unixy as possible without feeling hacked together. After compilation,
+configuration happens entirely via the command line, and the intent
+is for the building to be orchestrated with a tool like make(1).
+The utility also outsources hard things to other tools, focusing
+on tools available in any POSIX operating system.
+
+- lowdown(1) is used to convert Markdown into HTML and roff_ms
+
+- groff(1) is used to convert roff_ms into PDF
+
+- m4(1) is used to process page headers, footers, and any other
+  data built from a template
