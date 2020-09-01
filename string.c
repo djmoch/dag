@@ -1,8 +1,5 @@
-/* See LICENSE file for copyright and license details
- *
- * NOTE: All functions in this file assume strings are NUL-terminated
- * unless otherwise specified
- */
+/* See LICENSE file for copyright and license details */
+#include <stdio.h>
 #include <string.h>
 
 int
@@ -34,4 +31,20 @@ strnswp(char *big, const char *old, const char *new, size_t max) {
 	}
 
 	memcpy(begin, new, newlen);
+}
+
+void
+dedup(char **strarray) {
+	int i = 0;
+	while(strarray[i] != NULL) {
+		for(int j=0; j!=i; j++) {
+			if(strcmp(strarray[i], strarray[j]) == 0) {
+				for(int k=i; strarray[k]!=NULL; k++) {
+					strarray[k] = strarray[k+1];
+				}
+				break;
+			}
+		}
+		i++;
+	}
 }

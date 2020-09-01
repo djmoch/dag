@@ -119,6 +119,7 @@ main(int argc, char **argv) {
 		path_argv[i] = argv[i];
 	}
 	path_argv[argc - 1] = NULL;
+	dedup(path_argv);
 	out = argv[argc - 1];
 
 	FTS *src_tree = fts_open(path_argv, FTS_LOGICAL, NULL);
@@ -132,7 +133,7 @@ main(int argc, char **argv) {
 			char *outpath = make_outpath(out, entry->fts_accpath, path_argv);
 			printf("%s: found file -- %s\n",
 				argv0, entry->fts_accpath);
-			printf("%s: creating file -- %s/%s\n", argv0, out, entry->fts_accpath);
+			printf("%s: creating file -- %s\n", argv0, outpath);
 			free(outpath);
 		}
 	}

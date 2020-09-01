@@ -1,0 +1,2 @@
+- If one "in" directory is an exact substring of another, that will
+  cause problems with make_outpath.
