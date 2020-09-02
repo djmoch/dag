@@ -14,3 +14,30 @@ on tools available in any POSIX operating system.
 
 - m4(1) is used to process page headers, footers, and any other
   data built from a template
+
+The design is intended to make it trivial to swap in different tools,
+provided drivers are available.
+
+There are methods, documented (more or less)[1], on using the tools
+above to generate a static website. Dag was created because these
+solutions have several drawbacks:
+
+- Short of dropping a Makefile in every source directory (which is
+  honorous), it's not apparent to the author how best to avoid the
+  problem of regenerating files unnecessarily. Dag is able to do this
+  trivially.
+
+- Even if the above hurdle were overcome, make(1) would still need a
+  helper tool to parse the post metadata at the beginning of each
+  Markdown file. Once we've begun to write a tool for this, we may
+  as well make our lives easier and avoid recusive make(1) while we're
+  at it.
+
+- Generating indexes without a specialized tool to do so is cumbersome
+  at best, and may not even be possible without using GNU extensions
+  to m4(1).
+
+[1] - See, for example, http://p.hagelb.org/Makefile.html. Phil boasts
+that his website is generated using nothing but m4(1) and the linked
+Makefile, although he admits that index generation is tricky (ed: and
+probably relies on GNU extensions)
