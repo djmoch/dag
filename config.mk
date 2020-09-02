@@ -12,7 +12,7 @@ PREFIX := /usr/local
 MANPATH := ${PREFIX}/share/man
 X11BASE := /usr/X11R6
 
-SRC = dag.c string.c
+SRC = dag.c string.c m4.c
 DIST_SRC = ${SRC} Makefile README config.mk
 OBJ = ${SRC:.c=.o}
 INCS =
