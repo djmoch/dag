@@ -4,7 +4,8 @@
 #include "string.h"
 
 int
-test_strnswp1() {
+test_strnswp1()
+{
 	char big[] = "thisandthat";
 	char old[] = "and";
 	char new[] = "foo";
@@ -19,7 +20,8 @@ test_strnswp1() {
 }
 
 int
-test_strnswp2() {
+test_strnswp2()
+{
 	char big[12] = "thisandthat";
 	char old[] = "and";
 	char new[] = "foot";
@@ -34,7 +36,8 @@ test_strnswp2() {
 }
 
 int
-test_strnswp3() {
+test_strnswp3()
+{
 	char big[] = "thisandthat";
 	char old[] = "and";
 	char new[] = "fo";
@@ -49,7 +52,8 @@ test_strnswp3() {
 }
 
 int
-test_strnswp4() {
+test_strnswp4()
+{
 	char big[] = "thisandthat";
 	char old[] = "and";
 	char new[] = "";
@@ -64,7 +68,8 @@ test_strnswp4() {
 }
 
 int
-test_strnswp5() {
+test_strnswp5()
+{
 	char big[] = "thisandthat";
 	char old[] = "and";
 	char new[] = "foot";
@@ -79,7 +84,8 @@ test_strnswp5() {
 }
 
 int
-test_strnswp6() {
+test_strnswp6()
+{
 	char big[] = "thisandthat";
 	char old[] = "foot";
 	char new[] = "bat";
@@ -93,7 +99,8 @@ test_strnswp6() {
 	return 0;
 }
 
-int main() {
+int main()
+{
 	int retval = test_strnswp1();
 	retval |= test_strnswp2();
 	retval |= test_strnswp3();

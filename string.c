@@ -3,12 +3,14 @@
 #include <string.h>
 
 int
-strbegin(const char *big, const char *little) {
+strbegin(const char *big, const char *little)
+{
 	return (strstr(big, little) == big);
 }
 
 void
-strnswp(char *big, const char *old, const char *new, size_t max) {
+strnswp(char *big, const char *old, const char *new, size_t max)
+{
 	size_t biglen = strlen(big);
 	size_t oldlen = strlen(old);
 	size_t newlen = strlen(new);
@@ -34,7 +36,8 @@ strnswp(char *big, const char *old, const char *new, size_t max) {
 }
 
 void
-dedup(char **strarray) {
+dedup(char **strarray)
+{
 	int i = 0;
 	while(strarray[i] != NULL) {
 		for(int j=0; j!=i; j++) {

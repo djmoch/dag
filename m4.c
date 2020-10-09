@@ -5,7 +5,8 @@
 
 char *
 make_m4_cmd(const char **defines, const int num_defines,
-		const char *infile, const char *outfile) {
+		const char *infile, const char *outfile)
+{
 	char *retval = malloc(strlen(M4) + 1);
 	sprintf(retval, M4);
 

@@ -20,7 +20,8 @@ enum {
 };
 
 void
-usage(int e_val) {
+usage(int e_val)
+{
 	FILE *fp;
 
 	if (e_val) {
@@ -30,12 +31,13 @@ usage(int e_val) {
 		fp = stdout;
 	}
 
-	fprintf(fp, "usage: %s [-hv] [-Dname=value ...] [-H header] [-f footer] in ... out\n", argv0);
+	fprintf(fp, "usage: %s [-hv] [-Dname=value ...] in ... out\n", argv0);
 	exit(e_val);
 }
 
 char *
-make_outpath(const char *out, const char *srcpath, char *src_argv[]) {
+make_outpath(const char *out, const char *srcpath, char *src_argv[])
+{
 	for (int i=0; src_argv[i]!=NULL; i++) {
 		if (strbegin(srcpath, src_argv[i])) {
 			char *outpath = NULL;
@@ -55,10 +57,11 @@ make_outpath(const char *out, const char *srcpath, char *src_argv[]) {
 }
 
 int
-main(int argc, char **argv) {
+main(int argc, char **argv)
+{
 	char ch, *header = NULL, *footer = NULL, *defines[MAX_DEFINES];
 	char *out;
-	int num_defines = 0;
+	size_t num_defines = 0;
 	argv0 = basename(argv[0]);
 	FTSENT *entry = NULL;
 
@@ -67,12 +70,6 @@ main(int argc, char **argv) {
 		case 'D':
 			defines[num_defines] = optarg;
 			num_defines += 1;
-			break;
-		case 'f':
-			footer = optarg;
-			break;
-		case 'H':
-			header = optarg;
 			break;
 		case 'h':
 			usage(ERR_NONE);
