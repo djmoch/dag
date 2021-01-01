@@ -8,6 +8,7 @@
 #include <fts.h>
 #include <unistd.h>
 
+#include "dagfile.h"
 #include "string.h"
 
 static char *argv0;
@@ -20,19 +21,19 @@ enum {
 };
 
 void
-usage(int e_val)
+usage(int rv)
 {
 	FILE *fp;
 
-	if (e_val) {
+	if (rv) {
 		fp = stderr;
 	}
 	else {
 		fp = stdout;
 	}
 
-	fprintf(fp, "usage: %s [-hv] [-Dname=value ...] in ... out\n", argv0);
-	exit(e_val);
+	fprintf(fp, "usage: %s [-hv] in ... out\n", argv0);
+	exit(rv);
 }
 
 char *
@@ -59,18 +60,12 @@ make_outpath(const char *out, const char *srcpath, char *src_argv[])
 int
 main(int argc, char **argv)
 {
-	char ch, *header = NULL, *footer = NULL, *defines[MAX_DEFINES];
-	char *out;
-	size_t num_defines = 0;
+	char ch, *out;
 	argv0 = basename(argv[0]);
 	FTSENT *entry = NULL;
 
-	while ((ch = getopt(argc, argv, "D:H:f:vh")) != -1) {
+	while ((ch = getopt(argc, argv, "vh")) != -1) {
 		switch (ch) {
-		case 'D':
-			defines[num_defines] = optarg;
-			num_defines += 1;
-			break;
 		case 'h':
 			usage(ERR_NONE);
 			break;
@@ -107,9 +102,7 @@ main(int argc, char **argv)
 	while ((entry = fts_read(src_tree)) != NULL) {
 		if ((entry->fts_info & FTS_F) == FTS_F) {
 			char *outpath = make_outpath(out, entry->fts_accpath, path_argv);
-			printf("%s: found file -- %s\n",
-				argv0, entry->fts_accpath);
-			printf("%s: creating file -- %s\n", argv0, outpath);
+			process_dagfile(entry->fts_accpath, outpath);
 			free(outpath);
 		}
 	}
@@ -119,8 +112,4 @@ main(int argc, char **argv)
 			argv0, errno);
 		exit(ERR_FTS);
 	}
-
-	/* find .md files */
-	/* process if newer than corresponding html file in output */
-	/* also need to process if any template file is newer */
 }

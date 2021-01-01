@@ -8,6 +8,12 @@ strbegin(const char *big, const char *little)
 	return (strstr(big, little) == big);
 }
 
+int
+strend(const char *big, const char *little)
+{
+	return ((strstr(big, little)) == (big + strlen(big) - strlen(little)));
+}
+
 void
 strnswp(char *big, const char *old, const char *new, size_t max)
 {
