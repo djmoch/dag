@@ -141,6 +141,102 @@ test_strend3()
 	return 0;
 }
 
+int
+test_unquote1()
+{
+	char string[] = "\"test\"";
+	char *s = unquote(string), exp[] = "test";
+	if (strcmp(s, exp) != 0) {
+		printf("test_unquote1 failed:\n\texp: %s\n\tact: %s\n", exp, s);
+		return 1;
+	}
+
+	return 0;
+}
+
+int
+test_unquote2()
+{
+	char string[] = "\"test";
+	char *s = unquote(string), exp[] = "\"test";
+	if (strcmp(s, exp) != 0) {
+		printf("test_unquote1 failed:\n\texp: %s\n\tact: %s\n", exp, s);
+		return 1;
+	}
+
+	return 0;
+}
+
+int
+test_unquote3()
+{
+	char string[] = "'test'";
+	char *s = unquote(string), exp[] = "test";
+	if (strcmp(s, exp) != 0) {
+		printf("test_unquote1 failed:\n\texp: %s\n\tact: %s\n", exp, s);
+		return 1;
+	}
+
+	return 0;
+}
+
+int
+test_unquote4()
+{
+	char string[] = "'test";
+	char *s = unquote(string), exp[] = "'test";
+	if (strcmp(s, exp) != 0) {
+		printf("test_unquote1 failed:\n\texp: %s\n\tact: %s\n", exp, s);
+		return 1;
+	}
+
+	return 0;
+}
+
+int
+test_strnesc1()
+{
+	char string[] = "test", exp[] = "test";
+	char *s = strnesc(string, strlen(string));
+	if (s == NULL) {
+		printf("test_strnesc1 failed:\n\tcall to strnesc returned NULL\n");
+		return 1;
+	}
+	if (strcmp(s, exp) != 0) {
+		printf("test_strnesc1 failed:\n\texp: %s\n\tact: %s\n", exp, s);
+		return 1;
+	}
+	return 0;
+}
+
+int
+test_strnesc2()
+{
+	char string[] = "test%\0\0", exp[] = "test%%";
+	char *s = strnesc(string, 6);
+	if (s == NULL) {
+		printf("test_strnesc2 failed:\n\tcall to strnesc returned NULL\n");
+		return 1;
+	}
+	if (strcmp(s, exp) != 0) {
+		printf("test_strnesc2 failed:\n\texp: %s\n\tact: %s\n", exp, s);
+		return 1;
+	}
+	return 0;
+}
+
+int
+test_strnesc3()
+{
+	char string[] = "test%";
+	char *s = strnesc(string, strlen(string));
+	if (s != NULL) {
+		printf("test_strnesc1 failed:\n\tshould return NULL\n");
+		return 1;
+	}
+	return 0;
+}
+
 int main()
 {
 	int retval = test_strnswp1();
@@ -151,5 +247,12 @@ int main()
 	retval |= test_strnswp6();
 	retval |= test_strend1();
 	retval |= test_strend2();
+	retval |= test_unquote1();
+	retval |= test_unquote2();
+	retval |= test_unquote3();
+	retval |= test_unquote4();
+	retval |= test_strnesc1();
+	retval |= test_strnesc2();
+	retval |= test_strnesc3();
 	return retval;
 }

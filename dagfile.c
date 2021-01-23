@@ -1,137 +1,171 @@
 /* See LICENSE file for copyright and license details */
 #include <libgen.h>
 #include <stdarg.h>
+#include <err.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <fts.h>
 
+#include "dagfile.h"
 #include "string.h"
 
-#define HEADER "templates/header.html"
-#define FOOTER "templates/footer.html"
+static void process_source(char *file);
+static void process_extension(char *file);
+static void process_suffix(char *file);
+static void copy_file(char *file);
+static char *make_outpath(const char *file);
+static int outdated(char *dest, int nsrc, ...);
+static void dag_mkdir(const char *out);
+static char *fmt_filter(char *f_cmd, char *file, char *target);
+static char *expand(char *cmd, char pat, char *subst);
 
-enum {
-	MD = 0,
-	SCSS,
-	HTML,
-	CSS,
-	PDF,
-	OTHER
-};
-
-char *ext[] = { ".md", ".scss", "/index.html", ".css", ".pdf" };
-
-char *xfrm[] = {
-	NULL,
-	NULL,
-	"%s -Thtml %s >>%s",
-	"%s -t compressed %s %s",
-	"%s -Tms %s | /usr/local/bin/groff -ms -t -Tpdf >%s",
-	"cp %s %s"
-};
-
-static int
-getft(const char *infile)
-{
-	int ft = OTHER;
-
-	for (int i=0; i<OTHER; i++) {
-		if (strend(infile, ext[i])) {
-			ft = i;
-			break;
-		}
-	}
-
-	return ft;
-}
-
-static char*
-getout(const char *orig, const int from, const int to)
-{
-	int plen = strlen(orig) + strlen(ext[to]) - strlen(ext[from]);
-	char *out = malloc(plen * sizeof(char));
-	strcpy(out, orig);
-	strnswp(out, ext[from], ext[to], plen);
-
-	return out;
-}
-
-static char*
-getcmd(int ft, const char *in, const char *out)
-{
-	char *ret, *cmd = xfrm[ft];
-	int clen;
-
-	switch (ft) {
-	case CSS:
-		clen = strlen(cmd) + strlen(in) + strlen(out) + strlen(SASSC) - 6;
-		break;
-	default:
-		clen = strlen(cmd) + strlen(in) + strlen(out) + strlen(LOWDOWN) - 6;
-	}
-
-	ret = malloc(clen * sizeof(char));
-
-	switch (ft) {
-	case CSS:
-		sprintf(ret, cmd, SASSC, in, out);
-		break;
-	case HTML:
-	case PDF:
-		sprintf(ret, cmd, LOWDOWN, in, out);
-		break;
-	default:
-		sprintf(ret, cmd, in, out);
-	}
-
-	return ret;
-}
-
-static char*
-gethdrcmd(const char * in, const char *out)
-{
-	char *ret, hdrpath[] = HEADER;
-	const char *slug = out + strlen("target"); /* TODO - don't assume target */
-	int clen;
-	char cmd[] = "%s -DDESCRIPTION=\"$(%s -Xdescription -Tterm %s)\" -DPAGE_TITLE=\"$(%s -Xtitle -Tterm %s)\" -DSLUG=%s %s >%s";
-	clen = strlen(cmd) + strlen(M4) + (2 * strlen(LOWDOWN)) + (2 * strlen(in)) +
-		(2 * strlen(out)) + strlen(hdrpath) - 16;
-	ret = malloc(clen);
-	sprintf(ret, cmd, M4, LOWDOWN, in, LOWDOWN, in, slug, hdrpath, out);
-	return ret;
-}
-
-static char*
-getftrcmd(const char *out)
-{
-	char *ret, ftrpath[] = FOOTER;
-	int clen;
-	char cmd[] = "cat <%s >>%s";
-	clen = strlen(cmd) + strlen(ftrpath) + strlen(out) - 6;
-	ret = malloc(clen);
-	sprintf(ret, cmd, ftrpath, out);
-	return ret;
-}
-
-void
-dag_mkdir(const char *out)
-{
-	struct stat sb;
-	char fmt[] = "mkdir -p %s";
-	int clen = strlen(fmt) + strlen(out) - 1;
-	char cmd[clen];
-	/* TODO: handle case where out exists, but isn't a directory */
-	if (stat(out, &sb) != 0 || !S_ISDIR(sb.st_mode)) {
-		sprintf(cmd, fmt, out);
-		printf("%s\n", cmd);
-		system(cmd);
-	}
-}
+static struct target *tgt;
+static struct source *src;
+static struct extension *ext;
+static struct suffix *sfx;
 
 int
-outdated(char *dest, int nsrc, ...) {
+process_dagfile(struct dagfile *df)
+{
+	FTSENT *entry = NULL;
+	FTS *src_tree;
+	tgt = df->target;
+	src = df ->target->sources;
+	char *path[] = { src->path, NULL };
+	ext = NULL;
+	sfx = NULL;
+
+	while (src != NULL && path[0] != NULL) {
+		src_tree = fts_open(path, FTS_LOGICAL, NULL);
+		if (src_tree == NULL) {
+			err(1, "call to fts_open() failed -- %d\n", errno);
+		}
+
+		while ((entry = fts_read(src_tree)) != NULL) {
+			if ((entry->fts_info & FTS_F) == FTS_F) {
+				process_source(entry->fts_accpath);
+			}
+		}
+
+		if (errno != 0) {
+			err(1, "error occurred walking file tree -- %d\n", errno);
+		}
+
+		fts_close(src_tree);
+		src = src->next;
+		if (src != NULL) {
+			path[0] = src->path;
+		}
+	}
+	return 0;
+}
+
+static void
+process_source(char *file)
+{
+	int found = 0;
+	ext = src->extensions;
+
+	while (ext != NULL) {
+		if (strend(file, ext->value)) {
+			process_extension(file);
+			found = 1;
+		}
+		ext = ext->next;
+	}
+
+	if (!found) {
+		/* no extension matches, so just copy */
+		copy_file(file);
+	}
+}
+
+static void
+process_extension(char *file)
+{
+	sfx = ext->suffixes;
+
+	while (sfx != NULL) {
+		process_suffix(file);
+		sfx = sfx->next;
+	}
+}
+
+static void
+process_suffix(char *file)
+{
+	char *target = make_outpath(file);
+	struct requirement *r = sfx->requirements;
+
+	int old = outdated(target, 1, file);
+	while (r != NULL) {
+		old |= outdated(target, 1, r->path);
+		r = r->next;
+	}
+
+	if (old) {
+		struct filter *f = sfx->filters;
+		while (f != NULL) {
+			char *cmd = fmt_filter(f->cmd, file, target);
+			printf("%s\n", cmd);
+			system(cmd);
+			free(cmd);
+			f = f->next;
+		}
+	}
+	free(target);
+}
+
+static void
+copy_file(char *file)
+{
+	char *target = make_outpath(file);
+
+	if (outdated(target, 1, file)) {
+		char fmt[] = "cp %s %s";
+		char *cmd = malloc((strlen(file) + strlen(target) + strlen(fmt) + 1) * sizeof(char));
+		sprintf(cmd, fmt, file, target);
+		printf("%s\n", cmd);
+		system(cmd);
+		free(cmd);
+	}
+
+	free(target);
+}
+
+static char *
+make_outpath(const char *file)
+{
+	int len = strlen(file) + strlen(tgt->path) + 1;
+	char *target = malloc(len * sizeof(char));
+
+	strcpy(target, file);
+	strnswp(target, src->path, tgt->path, len);
+
+	/*
+	 * TODO: find a better way to determine if the suffix needs
+	 * to be changed
+	 */
+	if (sfx) {
+		len = strlen(target) + strlen(sfx->value) + 1;
+		char *tmp = malloc(len * sizeof(char));
+		strcpy(tmp, target);
+		strnswp(tmp, ext->value, sfx->value, len);
+		free(target);
+		target = tmp;
+	}
+
+	dag_mkdir(dirname(target));
+	return target;
+}
+
+static int
+outdated(char *dest, int nsrc, ...)
+{
 	va_list ap;
 	struct stat d_sb, s_sb;
 	int rv = 1;
@@ -158,64 +192,62 @@ end:
 	return rv;
 }
 
-int
-process_dagfile(const char *infile, const char *outfile)
+static void
+dag_mkdir(const char *out)
 {
-	char *out = NULL;
-	char *cmd = NULL;
+	struct stat sb;
+	char fmt[] = "mkdir -p %s";
+	int clen = strlen(fmt) + strlen(out) + 1;
+	char cmd[clen];
+	/* TODO: handle case where out exists, but isn't a directory */
+	if (stat(out, &sb) != 0 || !S_ISDIR(sb.st_mode)) {
+		sprintf(cmd, fmt, out);
+		printf("%s\n", cmd);
+		system(cmd);
+	}
+}
 
-	switch (getft(infile)) {
-	case MD:
-		out = getout(outfile, MD, HTML);
-		if (outdated(out, 3, HEADER, FOOTER, infile)) {
-			dag_mkdir(dirname(out));
-			cmd = gethdrcmd(infile, out);
-			printf("%s\n", cmd);
-			system(cmd);
-			free(cmd);
-			cmd = getcmd(HTML, infile, out);
-			printf("%s\n", cmd);
-			system(cmd);
-			free(cmd);
-			cmd = getftrcmd(out);
-			printf("%s\n", cmd);
-			system(cmd);
-			free(out);
-			free(cmd);
-		}
+static char *
+fmt_filter(char *f_cmd, char *file, char *target)
+{
+	struct requirement *r = sfx->requirements;
+	char i = '1';
+	char *cmd = strdup(f_cmd);
 
-		out = getout(outfile, MD, PDF);
-		if (outdated(out, 3, HEADER, FOOTER, infile)) {
-			dag_mkdir(dirname(out));
-			cmd = getcmd(PDF, infile, out);
-			printf("%s\n", cmd);
-			system(cmd);
-		}
-		break;
-	case SCSS:
-		out = getout(outfile, SCSS, CSS);
-		if (outdated(out, 1, infile)) {
-			dag_mkdir(dirname(out));
-			cmd = getcmd(CSS, infile, out);
-			printf("%s\n", cmd);
-			system(cmd);
-		}
-		break;
-	default:
-		out = malloc(strlen(outfile) * sizeof(char));
-		strcpy(out, outfile);
-		if (outdated(out, 1, infile)) {
-			dag_mkdir(dirname(out));
-			cmd = getcmd(OTHER, infile, outfile);
-			printf("%s\n", cmd);
-			system(cmd);
+	while (r != NULL) {
+		if (i > '9')
+			err(1, "too many requirements: %s\n", f_cmd);
+
+		cmd = expand(cmd, i, r->path);
+		r = r->next;
+		i += 1;
+	}
+	cmd = expand(cmd, '<', file);
+	cmd = expand(cmd, '>', target);
+	return cmd;
+}
+
+static char *
+expand(char *cmd, char pat, char *subst)
+{
+	int ct = 0;
+	int len = strlen(cmd) + strcnt(cmd, '%') + 1;
+	cmd = realloc(cmd, len);
+	strnesc(cmd, len);
+	for (int j=0;;j++) {
+		if (cmd[j] == '\0')
+			break;
+		if (ct >= 10)
+			err(1, "too many substitutions\n");
+
+		if (cmd[j] == '$' && cmd[j+1] == pat) {
+			ct += 1;
+			cmd[j] = '%';
+			cmd[j+1] = 's';
 		}
 	}
-
-	free(out);
-	if (cmd != NULL) {
-		free(cmd);
-	}
-
-	return 0;
+	char *tmp = malloc((strlen(cmd) + (ct * strlen(subst)) + 1) * sizeof(char));
+	sprintf_ct(tmp, cmd, subst, ct);
+	free(cmd);
+	return tmp;
 }

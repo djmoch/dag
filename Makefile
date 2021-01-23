@@ -3,13 +3,28 @@
 
 include config.mk
 
-all: dag
+all: dag dagindex
 
-.c.o:
+y.tab.o: y.tab.c y.tab.h
+	${CC} -Wno-implicit-function-declaration -c -o y.tab.o y.tab.c
+
+lex.yy.o: lex.yy.c y.tab.h
+	${CC} -c -o lex.yy.o lex.yy.c
+
+.c.o: ${HDRS}
 	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ $<
 
-dag: ${OBJ}
-	${CC} -o $@ ${OBJ} ${LDFLAGS}
+y.tab.h y.tab.c: parse.y
+	yacc -d parse.y
+
+lex.yy.c: parse.l
+	lex parse.l
+
+dag: ${DOBJ}
+	${CC} -o $@ ${DOBJ} ${LDFLAGS}
+
+dagindex: ${IOBJ}
+	${CC} -o $@ ${IOBJ} ${LDFLAGS}
 
 string_test: string_test.o string.o
 	${CC} -o $@ string_test.o string.o ${LDFLAGS}
@@ -21,7 +36,7 @@ uninstall:
 	rm -f ${DESTDIR}${PREFIX}/bin/dag
 
 clean:
-	rm -f *.o dag *_test
+	rm -f *.o dag *_test y.tab.* lex.yy.c
 
 test: string_test
 	./string_test

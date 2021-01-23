@@ -57,3 +57,79 @@ dedup(char **strarray)
 		i++;
 	}
 }
+
+char *
+unquote(char *string)
+{
+	if ((string[0] == '"' && string[strlen(string)-1] == '"') ||
+			(string[0] == '\'' && string[strlen(string)-1] == '\'')) {
+		string[strlen(string)-1] = '\0';
+		return string + 1;
+	}
+	return string;
+}
+
+char *
+strnesc(char *str, int maxlen)
+{
+	int len = strlen(str);
+	for (int i=0;;i++) {
+		if (str[i] == '\0')
+			break;
+
+		if (str[i] == '%') {
+			if (len >= maxlen)
+				return NULL;
+
+			for (int j=len;j>=i;j--)
+				str[j+1] = str[j];
+			len += 1;
+			i += 1;
+		}
+	}
+
+	return str;
+}
+
+int
+strcnt(char *str, char c)
+{
+	int n = 0;
+
+	for (int i=0;;i++) {
+		if (str[i] == '\0')
+			break;
+		if (str[i] == c)
+			n += 1;
+	}
+	return n;
+}
+
+int
+sprintf_ct(char *str, char *fmt, char *subst, int ct)
+{
+	switch (ct) {
+	case 0:
+		return sprintf(str, fmt, NULL);
+	case 1:
+		return sprintf(str, fmt, subst);
+	case 2:
+		return sprintf(str, fmt, subst, subst);
+	case 3:
+		return sprintf(str, fmt, subst, subst, subst);
+	case 4:
+		return sprintf(str, fmt, subst, subst, subst, subst);
+	case 5:
+		return sprintf(str, fmt, subst, subst, subst, subst, subst);
+	case 6:
+		return sprintf(str, fmt, subst, subst, subst, subst, subst, subst);
+	case 7:
+		return sprintf(str, fmt, subst, subst, subst, subst, subst, subst, subst);
+	case 8:
+		return sprintf(str, fmt, subst, subst, subst, subst, subst, subst, subst, subst);
+	case 9:
+		return sprintf(str, fmt, subst, subst, subst, subst, subst, subst, subst, subst, subst);
+	default:
+		return 0;
+	}
+}

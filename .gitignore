@@ -1,2 +1,5 @@
 dag
 *_test
+dagindex
+y.tab.*
+lex.yy.*
