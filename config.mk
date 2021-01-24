@@ -19,5 +19,5 @@ LIBS = -ll -ly
 VERSION = 0.1.0dev0
 
 CPPFLAGS := -DVERSION=\"${VERSION}\"
-CFLAGS := -std=c99 -pedantic-errors -Wall -Wextra -Werror -O0 -g -c -pipe
+CFLAGS := -std=c99 -pedantic-errors -Wall -Wextra -Werror -O1 -g -c -pipe
 LDFLAGS := ${LIBS}

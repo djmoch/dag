@@ -64,6 +64,49 @@ process_dagfile(struct dagfile *df)
 	return 0;
 }
 
+void
+free_dagfile(struct dagfile *df)
+{
+	struct source *s = df->target->sources;
+	while (s != NULL) {
+		struct source *snext = s->next;
+		struct extension *e = s->extensions;
+		while (e != NULL) {
+			struct extension *enext = e->next;
+			struct suffix *sfx = e->suffixes;
+			while (sfx != NULL) {
+				struct suffix *sfxnext = sfx->next;
+				struct requirement *r = sfx->requirements;
+				struct filter *f = sfx->filters;
+				while (r != NULL) {
+					struct requirement *rnext = r->next;
+					free(r->path);
+					free(r);
+					r = rnext;
+				}
+				while (f != NULL) {
+					struct filter *fnext = f->next;
+					free(f->cmd);
+					free(f);
+					f = fnext;
+				}
+				free(sfx->value);
+				free(sfx);
+				sfx = sfxnext;
+			}
+			free(e->value);
+			free(e);
+			e = enext;
+		}
+		free(s->path);
+		free(s);
+		s = snext;
+	}
+	free(df->target->path);
+	free(df->target);
+	free(df);
+}
+
 static void
 process_source(char *file)
 {

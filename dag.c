@@ -9,9 +9,6 @@
 #include "dagfile.h"
 #include "string.h"
 
-int parse_dagfile(struct dagfile *dagfile, FILE *path);
-void debug_dagfile(struct dagfile *df);
-
 static char *argv0;
 
 enum {
@@ -46,7 +43,8 @@ main(int argc, char **argv)
 	int verbose = 0;
 	FILE *df;
 	argv0 = basename(argv[0]);
-	struct dagfile dagfile = { NULL };
+	struct dagfile *dagfile;
+	int retval;
 
 	while ((ch = getopt(argc, argv, "f:hvV")) != -1) {
 		switch (ch) {
@@ -78,16 +76,18 @@ main(int argc, char **argv)
 		fprintf(stderr, "%s: error opening %s\n", argv0, path);
 		exit(ERR_FILE);
 	}
-	if (parse_dagfile(&dagfile, df) != 0) {
+	if ((dagfile = parse_dagfile(df)) == NULL) {
 		fprintf(stderr, "%s: error parsing %s\n", argv0, path);
 		exit(ERR_PARSE);
 	}
 	fclose(df);
 	if (verbose) {
-		debug_dagfile(&dagfile);
+		debug_dagfile(dagfile);
 	}
 
 	/* TODO - pledge and unveil */
 
-	return process_dagfile(&dagfile);
+	retval = process_dagfile(dagfile);
+
+	free_dagfile(dagfile);
 }

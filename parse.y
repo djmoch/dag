@@ -80,16 +80,19 @@ filter: FILTER STRING { push_filter($2); }
 
 %%
 
-int
-parse_dagfile(struct dagfile *df, FILE *file)
+struct dagfile *
+parse_dagfile(FILE *file)
 {
-	dagfile = df;
+	dagfile = malloc(sizeof(struct dagfile));
 	dagfile->target = NULL;
 	t = NULL;
 	e = NULL;
 	s = NULL;
 	yyin = file;
-	return yyparse();
+	if (yyparse() != 0)
+		return NULL;
+	else
+		return dagfile;
 }
 
 void

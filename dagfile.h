@@ -42,5 +42,9 @@ struct dagfile {
 };
 
 int process_dagfile(struct dagfile *df);
+void free_dagfile(struct dagfile *df);
+struct dagfile *parse_dagfile(FILE *path);
+void debug_dagfile(struct dagfile *df);
+
 
 #endif
