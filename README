@@ -1,12 +1,25 @@
 DAG - Djmoch's Automatic Generator
 ==================================
 
-usage: %s [-hv] [-Dname=value ...] [-m intype:outtype:xform ...]
-	in ... out
+usage: dag [-Vhv] [-f file]
 
-Dag copies file trees from the input directories to the output directory. Each -m flag specifies a transform, xform, to apply to files of intype to create files of outtype where both intype and outtype are file extensions. Each -D flag specifies a macro that will be passed into each transform (see Transforms section below).
+Dag copies file trees from the input directories to the output
+directory. Before reaching their destination, files are filtered
+according to the rules declared in a file (default: Dagfile) in the
+working directory.
+
+usage: dagindex -Vh
+	dagindex -A [-a author] [-c category] [-d description]
+		[-p date_published] [-s slug] [-t title] [-u date_updated]
+	dagindex -G -o fmt
+
+Dagindex maintains a database of index entries and refers to the
+database in order to create index files. Index files can be either
+HTML for XML formatted (for a landing page and RSS feed, respectively).
+In generate mode (-G), output files are sent to stdout.
 
 Intent
 ------
 
-Dag was created to overcome some of the shortcomings of make(1).
+Dag, though perhaps reminiscent of make(1), is designed as a more
+targeted solution for generating static websites and the like.

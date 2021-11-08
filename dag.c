@@ -90,4 +90,6 @@ main(int argc, char **argv)
 	retval = process_dagfile(dagfile);
 
 	free_dagfile(dagfile);
+
+	return retval;
 }

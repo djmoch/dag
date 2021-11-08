@@ -9,7 +9,7 @@
 
 int strbegin(const char *big, const char *little);
 int strend(const char *big, const char *little);
-char *strnswp(char *big, const char *old, const char *new, size_t max);
+void strnswp(char *big, const char *old, const char *new, size_t max);
 char *unquote(char *string);
 char *strnesc(char *str, int maxlen);
 int strcnt(char *str, char c);

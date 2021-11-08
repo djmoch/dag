@@ -24,19 +24,20 @@ dag: ${DOBJ}
 	${CC} -o $@ ${DOBJ} ${LDFLAGS}
 
 dagindex: ${IOBJ}
-	${CC} -o $@ ${IOBJ} ${LDFLAGS}
+	${CC} -o $@ ${IOBJ}
 
 string_test: string_test.o string.o
-	${CC} -o $@ string_test.o string.o ${LDFLAGS}
+	${CC} -o $@ string_test.o string.o
 
-install: dag
+install: dag dagindex
 	install -Dm755 dag ${DESTDIR}${PREFIX}/bin/dag
+	install -Dm755 dagindex ${DESTDIR}${PREFIX}/bin/dagindex
 
 uninstall:
 	rm -f ${DESTDIR}${PREFIX}/bin/dag
 
 clean:
-	rm -f *.o dag *_test y.tab.* lex.yy.c
+	rm -f *.o dag dagindex *_test y.tab.* lex.yy.c
 
 test: string_test
 	./string_test
