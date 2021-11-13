@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <time.h>
 
 #include "db.h"
 
@@ -20,16 +21,26 @@ static int entrycmp(struct db_entry *e1, struct db_entry *e2);
 struct db_index *
 db_index_open(const char *db_path)
 {
-	char *dir, *path = malloc(strlen(db_path + 1));
+	char *dir, path[strlen(db_path + 1)];
 	struct stat sb;
-	struct db_index *index =  malloc(sizeof(struct db_index));
+	struct db_index *index;
 	struct db_entry *cur_entry = NULL, *next_entry = NULL;
-	FILE *fp = fopen(db_path, "rb");
+	FILE *fp;
+
+	if ((index =  malloc(sizeof(struct db_index))) == NULL) {
+		err(1, "call to malloc failed");
+	}
 
 	strcpy(path, db_path);
 	dir = dirname(path);
 	index->db_path = db_path;
 	index->entries = NULL;
+
+	if ((fp = fopen(db_path, "rb")) == NULL) {
+		warn("failed to open file %s", db_path);
+		warnx("returning empty index");
+		return index;
+	}
 
 	if (stat(dir, &sb)) {
 		err(errno, "failed to stat parent directory %s", dir);
@@ -39,10 +50,6 @@ db_index_open(const char *db_path)
 		index->db_path = db_path;
 		index->entries = NULL;
 		goto exit;
-	}
-
-	if (fp == NULL) {
-		err(errno, "failed to open %s for reading", db_path);
 	}
 
 	if ((cur_entry = getentry(fp)) == NULL) {
@@ -61,7 +68,6 @@ exit:
 	if (fp != NULL) {
 		fclose(fp);
 	}
-	free(path);
 	return index;
 }
 
@@ -87,14 +93,12 @@ db_index_write(struct db_index *index)
 		fwrite(&nul, sizeof(char), 1, fp);
 		fputs(entry->description, fp);
 		fwrite(&nul, sizeof(char), 1, fp);
-		fputs(entry->date_published, fp);
-		fwrite(&nul, sizeof(char), 1, fp);
+		fwrite(&(entry->date_published), sizeof(time_t), 1, fp);
 		fputs(entry->slug, fp);
 		fwrite(&nul, sizeof(char), 1, fp);
 		fputs(entry->title, fp);
 		fwrite(&nul, sizeof(char), 1, fp);
-		fputs(entry->date_updated, fp);
-		fwrite(&nul, sizeof(char), 1, fp);
+		fwrite(&(entry->date_updated), sizeof(time_t), 1, fp);
 		entry = entry->next;
 	}
 
@@ -139,13 +143,11 @@ db_entry_add(struct db_index *index, struct db_entry *entry)
 	}
 
 	while (cur_entry != NULL) {
-                int dcmp = strncmp(entry->date_published,
-			cur_entry->date_published, DATE_STRING_LENGTH);
 		int scmp = strcmp(entry->slug, cur_entry->slug);
 		if (verbose >= 2) {
-			fprintf(stderr, "DEBUG: dcmp = %d, scmp = %d\n", dcmp, scmp);
+			fprintf(stderr, "DEBUG: scmp = %d\n", scmp);
 		}
-		if (dcmp > 0) {
+		if (entry->date_published > cur_entry->date_published) {
 			if (verbose) {
 				warnx("inserting new entry %s", entry->slug);
 			}
@@ -158,7 +160,8 @@ db_entry_add(struct db_index *index, struct db_entry *entry)
 			}
 			break;
 		}
-		else if ((dcmp == 0) && (scmp == 0)) {
+		else if ((entry->date_published == cur_entry->date_published)
+				&& (scmp == 0)) {
 			if (!entrycmp(cur_entry, entry)) {
 				warnx("new entry %s matches existing one", entry->slug);
 				break;
@@ -193,13 +196,30 @@ db_entry_add(struct db_index *index, struct db_entry *entry)
 void
 db_entry_fprint(FILE *fp, struct db_entry *entry)
 {
-	fprintf(fp, "\tauthor = %s\n", entry->author);
+	struct tm *ptm = NULL, *utm = NULL;
+	char pstring[DATE_STRING_LENGTH],
+		ustring[DATE_STRING_LENGTH];
+
+	if ((ptm = gmtime(&(entry->date_published))) == NULL) {
+		errx(1, "call to gmtime failed");
+	}
+	if (strftime(pstring, DATE_STRING_LENGTH, "%FT%TZ",
+			ptm) == 0) {
+		errx(1, "failed to convert tm to string");
+	}
+	if ((utm = gmtime(&(entry->date_updated))) == NULL) {
+		errx(1, "call to gmtime failed");
+	}
+	if (strftime(ustring, DATE_STRING_LENGTH, "%FT%TZ",
+			utm) == 0) {
+		errx(1, "failed to convert tm to string");
+	}
 	fprintf(fp, "\tcategory = %s\n", entry->category);
 	fprintf(fp, "\tdescription = %s\n", entry->description);
-	fprintf(fp, "\tdate_published = %s\n", entry->date_published);
+	fprintf(fp, "\tdate_published = %s\n", pstring);
 	fprintf(fp, "\tslug = %s\n", entry->slug);
 	fprintf(fp, "\ttitle = %s\n", entry->title);
-	fprintf(fp, "\tdate_updated = %s\n", entry->date_updated);
+	fprintf(fp, "\tdate_updated = %s\n", ustring);
 }
 
 static struct db_entry *
@@ -215,8 +235,11 @@ getentry(FILE *fp)
 		return NULL;
 	}
 
-	entry = malloc(sizeof(struct db_entry));
-	entry->author         = str;
+	if ((entry = malloc(sizeof(struct db_entry))) == NULL) {
+		err(errno, "call to malloc failed");
+	}
+
+	entry->author = str;
 
 	if ((entry->category = getstring(fp)) == NULL) {
 		errx(1, "index db file corrupt!");
@@ -224,7 +247,7 @@ getentry(FILE *fp)
 	if((entry->description = getstring(fp)) == NULL) {
 		errx(1, "index db file corrupt!");
 	}
-	if((entry->date_published = getstring(fp)) == NULL) {
+	if(fread(&(entry->date_published), sizeof(time_t), 1, fp) == 0) {
 		errx(1, "index db file corrupt!");
 	}
 	if((entry->slug = getstring(fp)) == NULL) {
@@ -233,7 +256,7 @@ getentry(FILE *fp)
 	if((entry->title = getstring(fp)) == NULL) {
 		errx(1, "index db file corrupt!");
 	}
-	if((entry->date_updated = getstring(fp)) == NULL) {
+	if(fread(&(entry->date_updated), sizeof(time_t), 1, fp) == 0) {
 		errx(1, "index db file corrupt!");
 	}
 	entry->next = NULL;
@@ -247,10 +270,8 @@ free_entry(struct db_entry *entry)
 	free(entry->author);
 	free(entry->category);
 	free(entry->description);
-	free(entry->date_published);
 	free(entry->slug);
 	free(entry->title);
-	free(entry->date_updated);
 	free(entry);
 }
 
@@ -281,8 +302,8 @@ entrycmp(struct db_entry *e1, struct db_entry *e2)
 	if ((cmp = strcmp(e1->description, e2->description)) != 0) {
 		return cmp;
 	}
-	if ((cmp = strcmp(e1->date_published, e2->date_published)) != 0) {
-		return cmp;
+	if (e1->date_published != e2->date_published) {
+		return 1;
 	}
 	if ((cmp = strcmp(e1->slug, e2->slug)) != 0) {
 		return cmp;
@@ -290,8 +311,8 @@ entrycmp(struct db_entry *e1, struct db_entry *e2)
 	if ((cmp = strcmp(e1->title, e2->title)) != 0) {
 		return cmp;
 	}
-	if ((cmp = strcmp(e1->date_updated, e2->date_updated)) != 0) {
-		return cmp;
+	if (e1->date_updated != e2->date_updated) {
+		return 1;
 	}
 
 	return 0;

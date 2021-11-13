@@ -35,6 +35,7 @@ install: dag dagindex
 
 uninstall:
 	rm -f ${DESTDIR}${PREFIX}/bin/dag
+	rm -f ${DESTDIR}${PREFIX}/bin/dagindex
 
 clean:
 	rm -f *.o dag dagindex *_test y.tab.* lex.yy.c

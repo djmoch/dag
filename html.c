@@ -1,10 +1,14 @@
 /* See LICENSE file for copyright and license details */
+#include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "db.h"
 #include "string.h"
+
+static const int DATE_STRING_LENGTH = 30; /* TODO: use decl in db.c */
 
 static void htmlescape(char *s);
 
@@ -15,10 +19,18 @@ html_db_fmt(struct db_index *index)
 	struct db_entry *entry = index->entries;
 
 	while (entry != NULL) {
-		char *date = strdup(entry->date_published);
-		char *title = strdup(entry->title);
+		struct tm *pub_tm = NULL;
+		char pub[DATE_STRING_LENGTH];
 
-		date[10] = '\0'; /* only interested in YYYY-MM-DD */
+		if ((pub_tm = gmtime(&(entry->date_published))) == NULL) {
+			errx(1, "call to gmtime failed");
+		}
+		if (strftime(pub, DATE_STRING_LENGTH, "%F", pub_tm) == 0) {
+			errx(1, "call to strftime failed");
+		}
+
+		char *date = strdup(pub);
+		char *title = strdup(entry->title);
 
 		htmlescape(date);
 		htmlescape(title);

@@ -6,10 +6,10 @@ struct db_entry {
 	char *author;
 	char *category;
 	char *description;
-	char *date_published;
+	time_t date_published;
 	char *slug;
 	char *title;
-	char *date_updated;
+	time_t date_updated;
 	struct db_entry *next;
 };
 
