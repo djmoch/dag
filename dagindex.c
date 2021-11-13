@@ -224,7 +224,14 @@ main(int argc, char **argv)
 		usage(ERR_ARGS);
 	}
 
-	/* TODO: pledge and unveil */
+#ifdef __OpenBSD__
+	if (unveil("index.db", "rwc")) {
+		err(errno, "unveil failed");
+	}
+	if (pledge("stdio rpath wpath cpath", "")) {
+		err(errno, "pledge failed");
+	}
+#endif
 
 	if (verbose >= 2) {
 		fputs("DEBUG: received options:\n", stderr);

@@ -21,7 +21,7 @@ static int entrycmp(struct db_entry *e1, struct db_entry *e2);
 struct db_index *
 db_index_open(const char *db_path)
 {
-	char *dir, path[strlen(db_path + 1)];
+	char path[strlen(db_path + 1)];
 	struct stat sb;
 	struct db_index *index;
 	struct db_entry *cur_entry = NULL, *next_entry = NULL;
@@ -32,7 +32,6 @@ db_index_open(const char *db_path)
 	}
 
 	strcpy(path, db_path);
-	dir = dirname(path);
 	index->db_path = db_path;
 	index->entries = NULL;
 
@@ -42,14 +41,15 @@ db_index_open(const char *db_path)
 		return index;
 	}
 
-	if (stat(dir, &sb)) {
-		err(errno, "failed to stat parent directory %s", dir);
-	}
 	if (stat(db_path, &sb)) {
 		warnx("creating new db file: %s", db_path);
 		index->db_path = db_path;
 		index->entries = NULL;
 		goto exit;
+	}
+
+	if (sb.st_mode | S_IFDIR) {
+		errx("%s is a directory", db_path);
 	}
 
 	if ((cur_entry = getentry(fp)) == NULL) {

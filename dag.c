@@ -1,4 +1,6 @@
 /* See LICENSE file for copyright and license details */
+#include <err.h>
+#include <errno.h>
 #include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -72,6 +74,11 @@ main(int argc, char **argv)
 		fprintf(stderr, "%s: expected no arguments\n", argv0);
 		usage(ERR_ARGS);
 	}
+#ifdef __OpenBSD__
+	if (pledge("stdio cpath rpath wpath proc exec", NULL)) {
+		err(errno, "pledge failed");
+	}
+#endif
 	if ((df = fopen(path, "r")) == NULL) {
 		fprintf(stderr, "%s: error opening %s\n", argv0, path);
 		exit(ERR_FILE);
@@ -84,8 +91,6 @@ main(int argc, char **argv)
 	if (verbose) {
 		debug_dagfile(dagfile);
 	}
-
-	/* TODO - pledge and unveil */
 
 	retval = process_dagfile(dagfile);
 
