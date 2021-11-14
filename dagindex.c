@@ -2,6 +2,7 @@
 #include <err.h>
 #include <errno.h>
 #include <libgen.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -85,8 +86,13 @@ populate_time(char *time_str)
 {
 	struct tm time_tm;
 	time_t time = 0;
+	char *ep;
 
 	if (time_str) {
+		time = strtoll(time_str, &ep, 10);
+		if (time_str[0] != '\0' && *ep == '\0') {
+			return time;
+		}
 		if (strptime(time_str, "%F %T UTC%z",  &time_tm) == NULL) {
 			err(ERR_TIME, "call to strptime failed");
 		}

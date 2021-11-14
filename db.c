@@ -48,8 +48,8 @@ db_index_open(const char *db_path)
 		goto exit;
 	}
 
-	if (sb.st_mode | S_IFDIR) {
-		errx("%s is a directory", db_path);
+	if (sb.st_mode & S_IFDIR) {
+		errx(1, "%s is a directory", db_path);
 	}
 
 	if ((cur_entry = getentry(fp)) == NULL) {
