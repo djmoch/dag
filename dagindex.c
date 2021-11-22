@@ -48,7 +48,8 @@ usage(int rv)
 	fprintf(fp, "usage: %s -Vh\n", argv0);
 	fprintf(fp, "\t%s -A -t title -s slug -p date_published [-a author]\n", argv0);
 	fprintf(fp, "\t\t[-u date_updated] [-c category] [-d description]\n");
-	fprintf(fp, "\t%s -G -o fmt [-f fqdn]\n", argv0);
+	fprintf(fp, "\t%s -G -o fmt [-t title] [-f fqdn] [-d description]\n", argv0);
+	fprintf(fp, "\t\t[-r rss_url] [-l language] [-c copyright]\n");
 	exit(rv);
 }
 
@@ -110,13 +111,13 @@ main(int argc, char **argv)
 {
 	struct db_entry *entry;
 	struct db_index *index;
-        char ch, *author = NULL, *cat = NULL, *desc = NULL,
-		*fmt = NULL, *fqdn = NULL, *pub = NULL, *slug = NULL,
-		*title = NULL, *updated = NULL;
+        char ch, *author = NULL, *c = NULL, *desc = NULL,
+		*fmt = NULL, *fqdn = NULL, *lang = NULL, *pub = NULL,
+		*rss_url = NULL, *slug = NULL, *title = NULL, *updated = NULL;
 
 	argv0 = basename(argv[0]);
 
-	while ((ch = getopt(argc, argv, "AGVa:c:d:f:ho:p:s:t:u:v")) != -1) {
+	while ((ch = getopt(argc, argv, "AGVa:c:d:f:hl:o:p:r:s:t:u:v")) != -1) {
 		switch (ch) {
 		case 'A':
 			if (mode != NONE) {
@@ -145,28 +146,23 @@ main(int argc, char **argv)
 			author = optarg;
 			break;
 		case 'c':
-			if (mode != ADD) {
-				warnx("specifying -c without -A makes no sense");
-				usage(ERR_ARGS);
-			}
-			cat = optarg;
+			c = optarg;
 			break;
 		case 'd':
-			if (mode != ADD) {
-				warnx("specifying -d without -A makes no sense");
-				usage(ERR_ARGS);
-			}
 			desc = optarg;
 			break;
 		case 'f':
-			if (mode != GENERATE) {
-				warnx("specifying -f without -G makes no sense");
-				usage(ERR_ARGS);
-			}
 			fqdn = optarg;
 			break;
 		case 'h':
 			usage(ERR_NONE);
+			break;
+		case 'l':
+			if (mode != GENERATE) {
+				warnx("specifying -l without -G makes no sense");
+				usage(ERR_ARGS);
+			}
+			lang = optarg;
 			break;
 		case 'o':
 			if (mode != GENERATE) {
@@ -182,6 +178,13 @@ main(int argc, char **argv)
 			}
 			pub = optarg;
 			break;
+		case 'r':
+			if (mode != GENERATE) {
+				warnx("specifying -r without -G makes no sense");
+				usage(ERR_ARGS);
+			}
+			rss_url = optarg;
+			break;
 		case 's':
 			if (mode != ADD) {
 				warnx("specifying -s without -A makes no sense");
@@ -190,10 +193,6 @@ main(int argc, char **argv)
 			slug = optarg;
 			break;
 		case 't':
-			if (mode != ADD) {
-				warnx("specifying -t without -A makes no sense");
-				usage(ERR_ARGS);
-			}
 			title = optarg;
 			break;
 		case 'u':
@@ -242,7 +241,7 @@ main(int argc, char **argv)
 	if (verbose >= 2) {
 		fputs("DEBUG: received options:\n", stderr);
 		fprintf(stderr, "\tauthor = %s\n", author);
-		fprintf(stderr, "\tcategory = %s\n", cat);
+		fprintf(stderr, "\tcategory = %s\n", c);
 		fprintf(stderr, "\tdescription = %s\n", desc);
 		fprintf(stderr, "\tdate_published = %s\n", pub);
 		fprintf(stderr, "\tslug = %s\n", slug);
@@ -255,7 +254,7 @@ main(int argc, char **argv)
 	switch (mode) {
 	case ADD:
 		entry->author = populate_str(author, "");
-		entry->category = populate_str(cat, "");
+		entry->category = populate_str(c, "");
 		entry->description = populate_str(desc, "");
 		entry->date_published = populate_time(pub);
 		entry->slug = populate_str(slug, "");
@@ -286,6 +285,34 @@ main(int argc, char **argv)
 				break;
 			}
 			xml_db_fmt_sitemap(fqdn, index);
+		}
+		else if (strncmp(fmt, "rss", 4) == 0) {
+			if (title == NULL) {
+				warnx("rss requires title be set with -t");
+				break;
+			}
+			if (fqdn == NULL) {
+				warnx("rss requires fqdn be set with -f");
+				break;
+			}
+			if (desc == NULL) {
+				warnx("rss requires description be set with -d");
+				break;
+			}
+			if (rss_url == NULL) {
+				warnx("rss requires RSS URL be set with -r");
+				break;
+			}
+			if (lang == NULL) {
+				warnx("rss requires language be set with -c");
+				break;
+			}
+			if (c == NULL) {
+				warnx("rss requires copyright be set with -c");
+				break;
+			}
+			xml_db_fmt_rss(title, fqdn, desc, rss_url,
+				lang, c, index);
 		}
 		else {
 			warnx("unknown output format: %s", fmt);
