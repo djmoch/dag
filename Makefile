@@ -55,4 +55,4 @@ distclean:
 
 clean-all: clean distclean
 
-.PHONY: all clean install uninstall dist distclean clean-all
+.PHONY: all clean install uninstall dist distclean clean-all test
