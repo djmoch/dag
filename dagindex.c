@@ -62,17 +62,17 @@ populate_str(const char *src, const char *dft)
 		if (verbose >= 2) {
 			fprintf(stderr, "DEBUG: populate_field src is non-NULL: %s\n", src);
 		}
-		dst = strdup(src);
+		if ((dst = strdup(src)) == NULL) {
+			err(errno, "strdup failed");
+		}
 	}
 	else {
 		if (verbose >= 2) {
 			fprintf(stderr, "DEBUG: populate_field src is NULL\n");
 		}
-		dst = strdup(dft);
-	}
-
-	if (dst == NULL) {
-		err(errno, "strdup failed in populate_str");
+		if ((dst = strdup(dft)) == NULL) {
+			err(errno, "strdup failed");
+		}
 	}
 
 	return dst;

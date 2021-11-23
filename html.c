@@ -1,5 +1,6 @@
 /* See LICENSE file for copyright and license details */
 #include <err.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,13 +16,13 @@ static void htmlescape(char *s);
 void
 html_db_fmt(struct db_index *index)
 {
+	char *date, *title;
 	puts("<table>");
 	struct db_entry *entry = index->entries;
+	struct tm *pub_tm = NULL;
+	char pub[DATE_STRING_LENGTH];
 
 	while (entry != NULL) {
-		struct tm *pub_tm = NULL;
-		char pub[DATE_STRING_LENGTH];
-
 		if ((pub_tm = gmtime(&(entry->date_published))) == NULL) {
 			errx(1, "call to gmtime failed");
 		}
@@ -29,8 +30,13 @@ html_db_fmt(struct db_index *index)
 			errx(1, "call to strftime failed");
 		}
 
-		char *date = strdup(pub);
-		char *title = strdup(entry->title);
+		if ((date = strdup(pub)) == NULL) {
+			err(errno, "strdup failed");
+		}
+
+		if ((title = strdup(entry->title)) == NULL) {
+			err(errno, "strdup failed");
+		}
 
 		htmlescape(date);
 		htmlescape(title);
@@ -67,7 +73,9 @@ htmlescape(char *s)
 	}
 
 	maxlen = len + (ct * strlen("&quot;"));
-	s = realloc(s, maxlen);
+	if ((s = realloc(s, maxlen)) == NULL) {
+		err(errno, "realloc failed");
+	}
 
 	strnswp(s, "'", "&#39;", maxlen);
 	strnswp(s, "\"", "&quot;", maxlen);

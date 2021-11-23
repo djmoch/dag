@@ -170,7 +170,12 @@ copy_file(char *file)
 
 	if (outdated(target, 1, file)) {
 		char fmt[] = "cp %s %s";
-		char *cmd = malloc((strlen(file) + strlen(target) + strlen(fmt) + 1) * sizeof(char));
+		char *cmd;
+
+		if ((cmd = malloc((strlen(file) + strlen(target) + strlen(fmt) + 1) * sizeof(char))) == NULL) {
+			err(errno, "malloc failed");
+		}
+
 		sprintf(cmd, fmt, file, target);
 		printf("%s\n", cmd);
 		system(cmd);
@@ -184,7 +189,11 @@ static char *
 make_outpath(const char *file)
 {
 	int len = strlen(file) + strlen(tgt->path) + 1;
-	char *target = malloc(len * sizeof(char));
+	char *target;
+
+	if ((target = malloc(len * sizeof(char))) == NULL) {
+		err(errno, "malloc failed");
+	}
 
 	strcpy(target, file);
 	strnswp(target, src->path, tgt->path, len);
@@ -194,8 +203,11 @@ make_outpath(const char *file)
 	 * to be changed
 	 */
 	if (sfx) {
+		char *tmp;
 		len = strlen(target) + strlen(sfx->value) + 1;
-		char *tmp = malloc(len * sizeof(char));
+		if ((tmp = malloc(len * sizeof(char))) == NULL) {
+			err(errno, "malloc failed");
+		}
 		strcpy(tmp, target);
 		strnswp(tmp, ext->value, sfx->value, len);
 		free(target);
@@ -255,7 +267,11 @@ fmt_filter(char *f_cmd, char *file, char *target)
 {
 	struct requirement *r = sfx->requirements;
 	char i = '1';
-	char *cmd = strdup(f_cmd);
+	char *cmd;
+
+	if ((cmd = strdup(f_cmd)) == NULL) {
+		err(errno, "strdup failed");
+	}
 
 	while (r != NULL) {
 		if (i > '9')
@@ -273,9 +289,12 @@ fmt_filter(char *f_cmd, char *file, char *target)
 static char *
 expand(char *cmd, char pat, char *subst)
 {
+	char *tmp;
 	int ct = 0;
 	int len = strlen(cmd) + strcnt(cmd, '%') + 1;
-	cmd = realloc(cmd, len);
+	if ((cmd = realloc(cmd, len)) == NULL) {
+		err(errno, "realloc failed");
+	}
 	strnesc(cmd, len);
 	for (int j=0;;j++) {
 		if (cmd[j] == '\0')
@@ -289,7 +308,9 @@ expand(char *cmd, char pat, char *subst)
 			cmd[j+1] = 's';
 		}
 	}
-	char *tmp = malloc((strlen(cmd) + (ct * strlen(subst)) + 1) * sizeof(char));
+	if ((tmp = malloc((strlen(cmd) + (ct * strlen(subst)) + 1) * sizeof(char))) == NULL) {
+		err(errno, "malloc failed");
+	}
 	sprintf_ct(tmp, cmd, subst, ct);
 	free(cmd);
 	return tmp;

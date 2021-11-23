@@ -1,5 +1,7 @@
 %{
 /* See LICENSE file for copyright and license details */
+#include <err.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include "dagfile.h"
@@ -83,7 +85,10 @@ filter: FILTER STRING { push_filter($2); }
 struct dagfile *
 parse_dagfile(FILE *file)
 {
-	dagfile = malloc(sizeof(struct dagfile));
+	if ((dagfile = malloc(sizeof(struct dagfile))) == NULL) {
+		err(errno, "malloc failed");
+	}
+
 	dagfile->target = NULL;
 	t = NULL;
 	e = NULL;
@@ -103,8 +108,14 @@ push_target(char *string)
 		exit(1);
 	}
 
-	t = malloc(sizeof(struct target));
-	t->path = strdup(unquote(string));
+	if ((t = malloc(sizeof(struct target))) == NULL) {
+		err(errno, "malloc failed");
+	}
+
+	if ((t->path = strdup(unquote(string))) == NULL) {
+		err(errno, "strdup failed");
+	}
+
 	t->sources = NULL;
 	dagfile->target = t;
 }
@@ -112,8 +123,14 @@ push_target(char *string)
 void
 push_source(char *string)
 {
-	so = malloc(sizeof(struct source));
-	so->path = strdup(unquote(string));
+	if ((so = malloc(sizeof(struct source))) == NULL) {
+		err(errno, "malloc failed");
+	}
+
+	if ((so->path = strdup(unquote(string))) == NULL) {
+		err(errno, "strdup failed");
+	}
+
 	so->extensions = NULL;
 	so->next = NULL;
 
@@ -133,8 +150,14 @@ push_source(char *string)
 void
 push_extension(char *string)
 {
-	e = malloc(sizeof(struct extension));
-	e->value = strdup(unquote(string));
+	if ((e = malloc(sizeof(struct extension))) == NULL) {
+		err(errno, "malloc failed");
+	}
+
+	if ((e->value = strdup(unquote(string))) == NULL) {
+		err(errno, "strdup failed");
+	}
+
 	e->suffixes = NULL;
 	e->next = NULL;
 
@@ -154,8 +177,14 @@ push_extension(char *string)
 void
 push_suffix(char *string)
 {
-	s = malloc(sizeof(struct suffix));
-	s->value = strdup(unquote(string));
+	if ((s = malloc(sizeof(struct suffix))) == NULL) {
+		err(errno, "malloc failed");
+	}
+
+	if ((s->value = strdup(unquote(string))) == NULL) {
+		err(errno, "strdup failed");
+	}
+
 	s->requirements = NULL;
 	s->filters = NULL;
 	s->next = NULL;
@@ -176,8 +205,15 @@ push_suffix(char *string)
 void
 push_requirement(char *string)
 {
-	struct requirement *r = malloc(sizeof(struct requirement));
-	r->path = strdup(unquote(string));
+	struct requirement *r;
+	if ((r = malloc(sizeof(struct requirement))) == NULL) {
+		err(errno, "malloc failed");
+	}
+
+	if ((r->path = strdup(unquote(string))) == NULL) {
+		err(errno, "strdup failed");
+	}
+
 	r->next = NULL;
 
 	if (s->requirements == NULL) {
@@ -196,8 +232,15 @@ push_requirement(char *string)
 void
 push_filter(char *string)
 {
-	struct filter *f = malloc(sizeof(struct filter));
-	f->cmd = strdup(unquote(string));
+	struct filter *f;
+	if ((f = malloc(sizeof(struct filter))) == NULL) {
+		err(errno, "malloc failed");
+	}
+
+	if ((f->cmd = strdup(unquote(string))) == NULL) {
+		err(errno, "strdup failed");
+	}
+
 	f->next = NULL;
 
 	if (s->filters == NULL) {
