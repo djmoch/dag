@@ -39,7 +39,7 @@ install: dag dagindex
 uninstall:
 	rm -f ${DESTDIR}${PREFIX}/bin/dag
 	rm -f ${DESTDIR}${PREFIX}/bin/dagindex
-	rm -f ${DESTDIR}${PREFIX}/man1/dag.1
+	rm -f ${DESTDIR}${MANPATH}/man1/dag.1
 	rm -f ${DESTDIR}${MANPATH}/man1/dagindex.1
 	rm -f ${DESTDIR}${MANPATH}/man5/dagfile.5
 
