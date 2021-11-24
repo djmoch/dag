@@ -1,0 +1,117 @@
+.\" See LICENSE file for copyright and license details
+.Dd 2021-11-23
+.Dt DAGFILE 5
+.Os
+.Sh NAME
+.Nm dagfile
+.Nd Rules file for Djmoch's Auto Generator
+.Sh DESCRIPTION
+The
+.Nm
+is a companion file of
+.Xr dag 1
+that specifies filters to execute when encountering a file with a
+specified extension within a source directory.
+Filters are applied in order, referring to the source file and any
+other required files as necessary.
+.Pp
+A
+.Nm
+is structured hierarchically starting with a single target containing
+one or more sources.
+Targets and sources both refer to directories within the working
+directory.
+A
+.Nm
+can only contain one source.
+.Pp
+Within each source is one or more extensions defining file extensions
+to search for within the source directory.
+If a file within a source directory does not match any defined
+extension, it is copied to the target directory and no filters are
+applied.
+.Pp
+Each extension may contain one or more suffixes.
+A suffix names what the file extension is converted to in the target
+directory after the filters are applied.
+.Pp
+Each suffix contains a series of "require" and "filter" statements.
+Require statements name files required by the extension's filters,
+relative to the working directory.
+Filters name commands to apply, in order, to convert the source
+file to the target file.
+.Pp
+The target file is defined as the file specified by the suffix
+statement.
+Its full path is the path of the source file, relative to the source
+directory, appended to the target directory, with the extension
+converted into the suffix.
+.Pp
+The source, target, and requirement files can be referred to in a
+filter statement by the following symbols.
+.Bl -tag -width Ds
+.It Ar $<
+The source file path and name, relative to the working directory.
+.It Ar $>
+The target file path and name, relative to the working directory.
+.It Ar $n
+The requirement file specified by number
+.Ar n .
+The first "require" statement in the suffix block is referred to by
+.Ar $1 ,
+the second by
+.Ar $2 ,
+and so on.
+.Sh EXAMPLES
+The following
+.Nm
+will copy all of the files in directory src to directory target,
+converting all files with an .md extension to .html files:
+.Bd -literal -offset indent -compact
+target "target" {
+  source "src" {
+    extension ".md" {
+      suffix ".html" {
+        filter "lowdown -sThtml $< >$>"
+      }
+    }
+  }
+}
+.Ed
+.Pp
+The same as above, but also place .pdf files alongside .html files
+within directory target:
+.Bd -literal -offset indent -compact
+target "target" {
+  source "src" {
+    extension ".md" {
+      suffix ".html" {
+        filter "lowdown -sThtml $< >$>"
+      }
+      suffix ".pdf" {
+        filter "lowdown -Tms $< | pdfroff -itk -mspdf >$>"
+    }
+  }
+}
+.Ed
+.Pp
+The same as the first example, but wrap the generated .html files
+with header and footer data provided by requirement files:
+.Bd -literal -offset indent -compact
+target "target" {
+  source "src" {
+    extension ".md" {
+      suffix ".html" {
+        require "templates/header.html"
+        require "templates/footer.html"
+        filter "cp $1 $>"
+        filter "lowdown -Thtml $< >>$>"
+        filter "cat $2 >>$>"
+      }
+    }
+  }
+}
+.Ed
+.Sh SEE ALSO
+.Xr dag 1
+.Xr dagfile 5

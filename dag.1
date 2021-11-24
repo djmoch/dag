@@ -1,0 +1,67 @@
+.\" See LICENSE file for copyright and license details
+.Dd 2021-11-23
+.Dt DAG 1
+.Os
+.Sh NAME
+.Nm dag
+.Nd Djmoch's Auto Generator
+.Sh SYNOPSIS
+.Nm
+.Op Fl Vhv
+.Op Fl f Ar file
+.Sh DESCRIPTION
+.Nm
+copies file trees from the input directories to the output
+directory.
+Before reaching their destination, files are filtered
+according to the rules declared in a file (default: Dagfile, see
+.Xr dagfile 5 )
+in the working directory.
+.Pp
+By design, and similar to
+.Xr make 1 ,
+.Nm
+does not generate files unless they are out of date with the source
+file or any other required files.
+(See
+.Xr dagfile 5
+for a discussion of source and requirement files.)
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl V
+Verbose mode.
+Print debug information while running.
+.It Fl h
+Print usage and exit.
+.It Fl v
+Print version and exit.
+.It Fl f Ar file
+Change the name of the rules file from the default, Dagfile.
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+Run
+.Nm
+in the current directory:
+.Dl $ dag
+.Pp
+Run
+.Nm
+in the current directory, using a rules file named
+.Pa rules.dag :
+.Dl $ dag -f rules.dag
+.Sh SEE ALSO
+.Xr dagindex 1
+.Xr make 1
+.Xr dagfile 5
+.Sh HISTORY
+.Nm
+was conceived after a night spent wondering why everyone created
+their own static site generators.
+It is still unclear whether the author learned any valuable lessons.
+.Sh AUTHORS
+.Nm
+was written by
+.An Daniel Moch Aq Mt daniel@danielmoch.com .

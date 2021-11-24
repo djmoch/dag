@@ -1,13 +1,6 @@
 # See LICENSE file for copyright and license details
-
-LOWDOWN := /usr/local/bin/lowdown
-SASSC := /usr/local/bin/sassc
-M4 := /usr/bin/m4
-TBL := /usr/local/bin/tbl
-
 PREFIX := /usr/local
 MANPATH := ${PREFIX}/share/man
-X11BASE := /usr/X11R6
 
 HDRS = dagfile.h string.h y.tab.h
 DSRC = dag.c dagfile.c string.c y.tab.c lex.yy.c

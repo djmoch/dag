@@ -8,18 +8,26 @@ directory. Before reaching their destination, files are filtered
 according to the rules declared in a file (default: Dagfile) in the
 working directory.
 
-usage: dagindex -Vh
-	dagindex -A [-a author] [-c category] [-d description]
-		[-p date_published] [-s slug] [-t title] [-u date_updated]
-	dagindex -G -o fmt
+uage: %dagindex-Vh\
+	dagindex -A -t title -s slug -p date_published [-a author]
+		[-u date_updated] [-c category] [-d description]
+	dagindex -G -o fmt [-t title] [-f fqdn] [-d description]
+		[-r rss_url] [-l language] [-c copyright]
 
 Dagindex maintains a database of index entries and refers to the
 database in order to create index files. Index files can be either
-HTML for XML formatted (for a landing page and RSS feed, respectively).
-In generate mode (-G), output files are sent to stdout.
+HTML for XML formatted (for a landing page and sitemap/RSS feed,
+respectively). In generate mode (-G), output files are sent to
+stdout.
 
 Intent
 ------
 
 Dag, though perhaps reminiscent of make(1), is designed as a more
 targeted solution for generating static websites and the like.
+
+Maturity
+--------
+
+Dag is very alpha. The design and/or implementation is subject to
+major overhaul without notice.

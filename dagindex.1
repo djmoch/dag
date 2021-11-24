@@ -1,0 +1,164 @@
+.\" See LICENSE file for copyright and license details
+.Dd 2021-11-23
+.Dt DAGINDEX 1
+.Os
+.Sh NAME
+.Nm dagindex
+.Nd Index utility for Djmoch's Auto Generator
+.Sh SYNOPSIS
+.Nm
+.Fl Vhv
+.Nm
+.Fl A
+.Fl t Ar title
+.Fl s Ar slug
+.Fl p Ar date_published
+.Op Fl a Ar author
+.Op Fl u Ar date_updated
+.Op Fl c Ar category
+.Op Fl d Ar description
+.Nm
+.Fl G
+.Fl o Ar fmt
+.Op Fl t Ar title
+.Op Fl f Ar fqdn
+.Op Fl d Ar description
+.Op Fl r Ar rss_url
+.Op Fl l Ar language
+.Op Fl c Ar copyright
+.Sh DESCRIPTION
+In append mode,
+.Nm
+maintains a database of index entries and refers to the database
+in order to create index files.
+Entries are considered to be unique based on their
+.Ar slug .
+If an existing entry is found in the database with the same slug
+as that provided using the
+.Fl s
+flag, then the database entry is updated.
+.Pp
+In generate mode, formatted index files are sent to stdout.
+Index files can be either HTML for XML formatted (see discussion
+of the
+.Fl o
+option below).
+.Pp
+The mode of operation is specified with one of the following options:
+.Bl -tag -width Ds
+.It Fl A
+Append mode.
+Add an entry to the index database.
+.It Fl G
+Generate mode.
+Consult the index database to print a formatted index file to stdout.
+.El
+.Pp
+Append mode options:
+.Bl -tag -width Ds
+.It Fl t Ar title
+Use
+.Ar title
+as the title of the entry to be added to the database.
+.It Fl s Ar slug
+Use
+.Ar slug
+as the slug of the entry to be added to the database.
+.Nm
+considers the slug to be everything that will appear after the
+server name in the URL.
+.It Fl p Ar date_published
+Use
+.Ar date_published
+as the published date of the entry to be added to the database.
+The argument may be specified as either a Unix timestamp or as a
+string formatted as YYYY-MM-DD HH:MM:SS UTC[+-]hh:mm.
+.It Fl a Ar author
+Use
+.Ar author
+as the author of the entry to be added to the database.
+.It Fl u Ar date_updated
+Use
+.Ar date_updated
+as the updated date of the entry to be added to the database.
+See the description of the
+.Fl p
+flag for the format of
+.Ar date updated .
+.It Fl c Ar category
+Use
+.Ar category
+as the category of the entry to be added to the database.
+.It Fl d Ar description
+Use
+.Ar description
+as the description of the entry to be added to the database.
+.El
+.Pp
+Generate mode options:
+.Bl -tag -width Ds
+.It Fl o Ar fmt
+Specify the output mode
+.Ar fmt .
+This may be one of the following:
+.Bl -tag -width Ds
+.It Ar term
+Print the database to stdout in a human-readable format.
+.It Ar html
+Print the database to stdout formatted as a series of HTML table
+rows suitable for use as a blog index page.
+.It Ar sitemapindex
+Print the database to stdout formatted as a sitemapindex.
+This option is deprecated and should not be used.
+.It Ar sitemap
+Print the database to stdout formatted as a sitemap.
+.It Ar rss
+Print the database to stdout formatted as an RSS feed.
+.El
+.It Fl t Ar title
+Used when
+.Ar fmt
+is rss to specify the title of the channel.
+.It Fl f Ar fqdn
+Used when
+.Ar fmt
+is sitemapindex, sitemap, or rss to specify the server name of the
+site.
+.It Fl d Ar description
+Used when
+.Ar fmt
+is rss to specify the description of the channel.
+.It Fl r Ar rss_url
+Used when
+.Ar fmt
+is rss to specify the URL at which the RSS feed may be found.
+.It Fl l Ar language
+Used when
+.Ar fmt
+is rss to specify to the language of the channel.
+.It Fl c Ar copyright
+Used when
+.Ar fmt
+is rss to specify the copyright information for the channel.
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+Add an entry to the database, specifying the published date,
+slug, and title:
+.Dl $ dagindex -A -p1637706721 -s stuff.html -t Stuff
+.Pp
+Print a human-readable index to the terminal:
+.Dl $ dagindex -G -o term
+.Sh SEE ALSO
+.Xr dag 1
+.Xr dagfile 5
+.Sh HISTORY
+.Nm
+was conceived after a night spent wondering why everyone created
+their own static site generators.
+It is still unclear whether the author learned any valuable lessons.
+.Sh AUTHORS
+.Nm
+was written by
+.An Daniel Moch Aq Mt daniel@danielmoch.com .

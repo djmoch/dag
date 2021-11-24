@@ -32,10 +32,16 @@ string_test: string_test.o string.o
 install: dag dagindex
 	install -Dm755 dag ${DESTDIR}${PREFIX}/bin/dag
 	install -Dm755 dagindex ${DESTDIR}${PREFIX}/bin/dagindex
+	install -Dm644 dag.1 ${DESTDIR}${MANPATH}/man1/dag.1
+	install -Dm644 dagindex.1 ${DESTDIR}${MANPATH}/man1/dagindex.1
+	install -Dm644 dagfile.5 ${DESTDIR}${MANPATH}/man5/dagfile.5
 
 uninstall:
 	rm -f ${DESTDIR}${PREFIX}/bin/dag
 	rm -f ${DESTDIR}${PREFIX}/bin/dagindex
+	rm -f ${DESTDIR}${PREFIX}/man1/dag.1
+	rm -f ${DESTDIR}${MANPATH}/man1/dagindex.1
+	rm -f ${DESTDIR}${MANPATH}/man5/dagfile.5
 
 clean:
 	rm -f *.o dag dagindex *_test y.tab.* lex.yy.c
