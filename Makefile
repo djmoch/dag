@@ -53,7 +53,7 @@ dist:
 	rm -rf dag-${VERSION}
 	mkdir dag-${VERSION}
 	cp ${DIST_SRC} dag-${VERSION}
-	tar -cf dag-${VERSION} | gzip > dag-${VERSION}.tar.gz
+	tar -cf - dag-${VERSION} | gzip > dag-${VERSION}.tar.gz
 
 distclean:
 	rm -rf dag-${VERSION}
