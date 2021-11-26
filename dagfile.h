@@ -1,8 +1,5 @@
 /* See LICENSE file for copyright and license details */
 
-#ifndef __DAGFILE_H
-#define __DAGFILE_H
-
 struct requirement {
 	char *path;
 	struct requirement *next;
@@ -45,6 +42,3 @@ int process_dagfile(struct dagfile *df);
 void free_dagfile(struct dagfile *df);
 struct dagfile *parse_dagfile(FILE *path);
 void debug_dagfile(struct dagfile *df);
-
-
-#endif

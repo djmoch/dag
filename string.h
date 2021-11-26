@@ -4,9 +4,6 @@
  * unless otherwise specified
  */
 
-#ifndef __DAG_STRING_H
-#define __DAG_STRING_H
-
 int strbegin(const char *big, const char *little);
 int strend(const char *big, const char *little);
 void strnswp(char *big, const char *old, const char *new, size_t max);
@@ -17,5 +14,3 @@ int sprintf_ct(char *str, char *fmt, char *subst, int ct);
 
 /* assumes the last element of strarray is NULL */
 void dedup(char **strarray);
-
-#endif
