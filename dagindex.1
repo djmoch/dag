@@ -17,6 +17,7 @@
 .Op Fl u Ar date_updated
 .Op Fl c Ar category
 .Op Fl d Ar description
+.Op Fl x Ar sitemap_only
 .Nm
 .Fl G
 .Fl o Ar fmt
@@ -93,6 +94,14 @@ as the category of the entry to be added to the database.
 Use
 .Ar description
 as the description of the entry to be added to the database.
+.It Fl x Ar sitemap_only
+Use the value of
+.Ar sitemap_only
+to control whether the entry should only be printed in sitemaps
+(i.e., whether the entry should be excluded from HTML indexes and
+RSS feeds).
+A value of 0 means to print the entry in all indexes.
+A value of 1 means to print the entry only in sitemaps.
 .El
 .Pp
 Generate mode options:

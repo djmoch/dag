@@ -99,6 +99,7 @@ db_index_write(struct db_index *index)
 		fputs(entry->title, fp);
 		fwrite(&nul, sizeof(char), 1, fp);
 		fwrite(&(entry->date_updated), sizeof(time_t), 1, fp);
+		fwrite(&(entry->sitemap_only), sizeof(unsigned short), 1, fp);
 		entry = entry->next;
 	}
 
@@ -220,6 +221,7 @@ db_entry_fprint(FILE *fp, struct db_entry *entry)
 	fprintf(fp, "\tslug = %s\n", entry->slug);
 	fprintf(fp, "\ttitle = %s\n", entry->title);
 	fprintf(fp, "\tdate_updated = %s\n", ustring);
+	fprintf(fp, "\tsitemap_only = %s\n", (entry->sitemap_only == 0) ? "false" : "true");
 }
 
 static struct db_entry *
@@ -244,19 +246,22 @@ getentry(FILE *fp)
 	if ((entry->category = getstring(fp)) == NULL) {
 		errx(1, "index db file corrupt!");
 	}
-	if((entry->description = getstring(fp)) == NULL) {
+	if ((entry->description = getstring(fp)) == NULL) {
 		errx(1, "index db file corrupt!");
 	}
-	if(fread(&(entry->date_published), sizeof(time_t), 1, fp) == 0) {
+	if (fread(&(entry->date_published), sizeof(time_t), 1, fp) == 0) {
 		errx(1, "index db file corrupt!");
 	}
-	if((entry->slug = getstring(fp)) == NULL) {
+	if ((entry->slug = getstring(fp)) == NULL) {
 		errx(1, "index db file corrupt!");
 	}
-	if((entry->title = getstring(fp)) == NULL) {
+	if ((entry->title = getstring(fp)) == NULL) {
 		errx(1, "index db file corrupt!");
 	}
-	if(fread(&(entry->date_updated), sizeof(time_t), 1, fp) == 0) {
+	if (fread(&(entry->date_updated), sizeof(time_t), 1, fp) == 0) {
+		errx(1, "index db file corrupt!");
+	}
+	if (fread(&(entry->sitemap_only), sizeof(unsigned short), 1, fp) == 0) {
 		errx(1, "index db file corrupt!");
 	}
 	entry->next = NULL;
@@ -312,6 +317,9 @@ entrycmp(struct db_entry *e1, struct db_entry *e2)
 		return cmp;
 	}
 	if (e1->date_updated != e2->date_updated) {
+		return 1;
+	}
+	if (e1->sitemap_only != e2->sitemap_only) {
 		return 1;
 	}
 

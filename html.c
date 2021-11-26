@@ -23,6 +23,10 @@ html_db_fmt(struct db_index *index)
 	char pub[DATE_STRING_LENGTH];
 
 	while (entry != NULL) {
+		if (entry->sitemap_only) {
+			entry = entry->next;
+			continue;
+		}
 		if ((pub_tm = gmtime(&(entry->date_published))) == NULL) {
 			errx(1, "call to gmtime failed");
 		}

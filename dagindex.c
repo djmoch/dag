@@ -48,6 +48,7 @@ usage(int rv)
 	fprintf(fp, "usage: %s -Vh\n", argv0);
 	fprintf(fp, "\t%s -A -t title -s slug -p date_published [-a author]\n", argv0);
 	fprintf(fp, "\t\t[-u date_updated] [-c category] [-d description]\n");
+	fprintf(fp, "\t\t[-x sitemap_only]\n");
 	fprintf(fp, "\t%s -G -o fmt [-t title] [-f fqdn] [-d description]\n", argv0);
 	fprintf(fp, "\t\t[-r rss_url] [-l language] [-c copyright]\n");
 	exit(rv);
@@ -114,10 +115,11 @@ main(int argc, char **argv)
         char ch, *author = NULL, *c = NULL, *desc = NULL,
 		*fmt = NULL, *fqdn = NULL, *lang = NULL, *pub = NULL,
 		*rss_url = NULL, *slug = NULL, *title = NULL, *updated = NULL;
+	unsigned short sitemap_only = 0;
 
 	argv0 = basename(argv[0]);
 
-	while ((ch = getopt(argc, argv, "AGVa:c:d:f:hl:o:p:r:s:t:u:v")) != -1) {
+	while ((ch = getopt(argc, argv, "AGVa:c:d:f:hl:o:p:r:s:t:u:vx:")) != -1) {
 		switch (ch) {
 		case 'A':
 			if (mode != NONE) {
@@ -205,6 +207,13 @@ main(int argc, char **argv)
 		case 'v':
 			verbose += 1;
 			break;
+		case 'x':
+			if (mode != ADD) {
+				warnx("specifying -x without -A makes no sense");
+				usage(ERR_ARGS);
+			}
+			sitemap_only = atoi(optarg);
+			break;
 		default:
 			usage(ERR_UNKNOWN_OPTION);
 		}
@@ -247,6 +256,7 @@ main(int argc, char **argv)
 		fprintf(stderr, "\tslug = %s\n", slug);
 		fprintf(stderr, "\ttitle = %s\n", title);
 		fprintf(stderr, "\tdate_updated = %s\n", updated);
+		fprintf(stderr, "\tsitemap_only = %hu\n", sitemap_only);
 	}
 
 	index = db_index_open(index_file);
@@ -260,6 +270,7 @@ main(int argc, char **argv)
 		entry->slug = populate_str(slug, "");
 		entry->title = populate_str(title, "");
 		entry->date_updated = populate_time(updated);
+		entry->sitemap_only = sitemap_only;
 		entry->next = NULL;
 
 		db_entry_add(index, entry);

@@ -149,6 +149,10 @@ xml_db_fmt_rss(char *title, char *fqdn, char *description, char *rss_url,
 	puts("    <docs>http://blogs.law.harvard.edu/tech/rss</docs>");
 
 	while (entry != NULL) {
+		if (entry->sitemap_only) {
+			entry = entry->next;
+			continue;
+		}
 		char *etitle, *elink, *ecreator, *edescription, *eslug;
 
 		if ((etitle = strdup(entry->title)) == NULL) {

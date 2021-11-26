@@ -8,6 +8,7 @@ struct db_entry {
 	char *slug;
 	char *title;
 	time_t date_updated;
+	unsigned short sitemap_only;
 	struct db_entry *next;
 };
 
