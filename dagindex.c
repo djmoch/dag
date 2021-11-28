@@ -119,7 +119,7 @@ main(int argc, char **argv)
 
 	argv0 = basename(argv[0]);
 
-	while ((ch = getopt(argc, argv, "AGVa:c:d:f:hl:o:p:r:s:t:u:vx:")) != -1) {
+	while ((ch = getopt(argc, argv, "AGVa:c:d:f:hl:o:p:r:s:t:u:vx")) != -1) {
 		switch (ch) {
 		case 'A':
 			if (mode != NONE) {
@@ -212,7 +212,7 @@ main(int argc, char **argv)
 				warnx("specifying -x without -A makes no sense");
 				usage(ERR_ARGS);
 			}
-			sitemap_only = atoi(optarg);
+			sitemap_only = 1;
 			break;
 		default:
 			usage(ERR_UNKNOWN_OPTION);
