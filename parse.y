@@ -3,6 +3,7 @@
 #include <err.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "dagfile.h"
 #include "string.h"
@@ -259,24 +260,25 @@ push_filter(char *string)
 void
 debug_dagfile(struct dagfile *df)
 {
-	printf("target %s\n", df->target->path);
+	printf("dagfile config:\n");
+	printf("\ttarget %s\n", df->target->path);
 	struct source *s = df->target->sources;
 	while (s != NULL) {
-		printf("source %s\n", s->path);
+		printf("\tsource %s\n", s->path);
 		struct extension *e = s->extensions;
 		while (e != NULL) {
-			printf("extension %s\n", e->value);
+			printf("\textension %s\n", e->value);
 			struct suffix *s = e->suffixes;
 			while (s != NULL) {
-				printf("suffix %s\n", s->value);
+				printf("\tsuffix %s\n", s->value);
 				struct requirement *r = s->requirements;
 				while (r != NULL) {
-					printf("require %s\n", r->path);
+					printf("\trequire %s\n", r->path);
 					r = r->next;
 				}
 				struct filter *f = s->filters;
 				while (f != NULL) {
-					printf("filter %s\n", f->cmd);
+					printf("\tfilter %s\n", f->cmd);
 					f = f->next;
 				}
 				s = s->next;
