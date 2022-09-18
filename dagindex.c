@@ -95,12 +95,12 @@ populate_time(char *time_str)
 		if (time_str[0] != '\0' && *ep == '\0') {
 			return time;
 		}
-		if (strptime(time_str, "%F %T UTC%z",  &time_tm) == NULL) {
-			err(ERR_TIME, "call to strptime failed");
+		if (strptime(time_str, "%Y-%m-%d %T",  &time_tm) == NULL) {
+			errx(ERR_TIME, "call to strptime failed");
 		}
 
 		if ((time = mktime(&time_tm)) == -1) {
-			err(ERR_TIME, "call to mktime failed");
+			errx(ERR_TIME, "call to mktime failed");
 		}
 	}
 

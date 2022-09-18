@@ -80,12 +80,10 @@ main(int argc, char **argv)
 	}
 #endif
 	if ((df = fopen(path, "r")) == NULL) {
-		fprintf(stderr, "%s: error opening %s\n", argv0, path);
-		exit(ERR_FILE);
+		errx(ERR_FILE, "%s: error opening %s", argv0, path);
 	}
 	if ((dagfile = parse_dagfile(df)) == NULL) {
-		fprintf(stderr, "%s: error parsing %s\n", argv0, path);
-		exit(ERR_PARSE);
+		errx(ERR_PARSE, "%s: error parsing %s", argv0, path);
 	}
 	fclose(df);
 	if (verbose) {

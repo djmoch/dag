@@ -42,7 +42,7 @@ process_dagfile(struct dagfile *df)
 	while (src != NULL && path[0] != NULL) {
 		src_tree = fts_open(path, FTS_LOGICAL, NULL);
 		if (src_tree == NULL) {
-			err(1, "call to fts_open() failed -- %d\n", errno);
+			err(errno, "call to fts_open() failed:");
 		}
 
 		while ((entry = fts_read(src_tree)) != NULL) {
@@ -52,7 +52,7 @@ process_dagfile(struct dagfile *df)
 		}
 
 		if (errno != 0) {
-			err(1, "error occurred walking file tree -- %d\n", errno);
+			err(errno, "error occurred walking file tree:");
 		}
 
 		fts_close(src_tree);
