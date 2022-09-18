@@ -1,5 +1,6 @@
 %{
 /* See LICENSE file for copyright and license details */
+#include <err.h>
 #include "y.tab.h"
 %}
 
@@ -43,3 +44,8 @@ none {
 }
 
 [ \t\n]+
+
+%%
+void yyerror(char *e) {
+	err(1, "syntax error: %s", e);
+}
