@@ -260,7 +260,9 @@ make_outpath(const char *file)
 		}
 	}
 
-	dag_mkdir(dirname(target));
+	char *tt = strdup(target);
+	dag_mkdir(dirname(tt));
+	free(tt);
 	if (verbose >= 2) {
 		printf("make_outpath(%s) = %s\n", file, target);
 	}
