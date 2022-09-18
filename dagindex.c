@@ -46,7 +46,7 @@ usage(int rv)
 	}
 
 	fprintf(fp, "usage: %s -Vh\n", argv0);
-	fprintf(fp, "\t%s -A -t title -s slug -p date_published [-a author]\n", argv0);
+	fprintf(fp, "\t%s -A [-x] -t title -s slug -p date_published [-a author]\n", argv0);
 	fprintf(fp, "\t\t[-u date_updated] [-c category] [-d description]\n");
 	fprintf(fp, "\t\t[-x sitemap_only]\n");
 	fprintf(fp, "\t%s -G -o fmt [-t title] [-f fqdn] [-d description]\n", argv0);

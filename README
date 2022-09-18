@@ -8,8 +8,8 @@ directory. Before reaching their destination, files are filtered
 according to the rules declared in a file (default: Dagfile) in the
 working directory.
 
-uage: %dagindex-Vh\
-	dagindex -A -t title -s slug -p date_published [-a author]
+usage: %dagindex-Vh
+	dagindex -A [-x] -t title -s slug -p date_published [-a author]
 		[-u date_updated] [-c category] [-d description]
 	dagindex -G -o fmt [-t title] [-f fqdn] [-d description]
 		[-r rss_url] [-l language] [-c copyright]
