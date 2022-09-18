@@ -1,4 +1,5 @@
 # See LICENSE file for copyright and license details
+VERSION = 0.1.0-dev0
 PREFIX := /usr/local
 MANPATH := ${PREFIX}/share/man
 
@@ -48,8 +49,9 @@ DIST_SRC = dag.c \
 DOBJ = ${DSRC:.c=.o}
 IOBJ = ${ISRC:.c=.o}
 LIBS = -ll -ly
-VERSION = 0.1.0dev0
 
-CPPFLAGS := -DVERSION=\"${VERSION}\"
+CPPFLAGS := -DVERSION=\"${VERSION}\" -D_BSD_SOURCE
 CFLAGS := -std=c99 -pedantic-errors -Wall -Wextra -Werror -O0 -g -c -pipe
 LDFLAGS := ${LIBS}
+
+CC = cc
