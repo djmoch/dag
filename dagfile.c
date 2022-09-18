@@ -28,8 +28,10 @@ static struct source *src;
 static struct extension *ext;
 static struct suffix *sfx;
 
+static int verbose = 0;
+
 int
-process_dagfile(struct dagfile *df)
+process_dagfile(struct dagfile *df, int verb)
 {
 	FTSENT *entry = NULL;
 	FTS *src_tree;
@@ -38,6 +40,12 @@ process_dagfile(struct dagfile *df)
 	char *path[] = { src->path, NULL };
 	ext = NULL;
 	sfx = NULL;
+
+	verbose = verb;
+
+	if (verbose >= 2) {
+		printf("process_dagfile\n");
+	}
 
 	while (src != NULL && path[0] != NULL) {
 		src_tree = fts_open(path, FTS_LOGICAL, NULL);
@@ -113,6 +121,10 @@ process_source(char *file)
 	int found = 0;
 	ext = src->extensions;
 
+	if (verbose >= 2) {
+		printf("process_source(%s)\n", file);
+	}
+
 	while (ext != NULL) {
 		if (strend(file, ext->value)) {
 			process_extension(file);
@@ -132,6 +144,10 @@ process_extension(char *file)
 {
 	sfx = ext->suffixes;
 
+	if (verbose >= 2) {
+		printf("process_extension(%s, %s)\n", file, ext->value);
+	}
+
 	while (sfx != NULL) {
 		process_suffix(file);
 		sfx = sfx->next;
@@ -144,6 +160,10 @@ process_suffix(char *file)
 	char *target = make_outpath(file);
 	struct requirement *r = sfx->requirements;
 
+	if (verbose >= 2) {
+		printf("process_suffix(%s, %s)\n", file, sfx->value);
+	}
+
 	int old = outdated(target, 1, file);
 	while (r != NULL) {
 		old |= outdated(target, 1, r->path);
@@ -151,6 +171,9 @@ process_suffix(char *file)
 	}
 
 	if (old) {
+		if (verbose) {
+			printf("%s outdated, applying filters\n", file);
+		}
 		struct filter *f = sfx->filters;
 		while (f != NULL) {
 			char *cmd = fmt_filter(f->cmd, file, target);
@@ -159,6 +182,9 @@ process_suffix(char *file)
 			free(cmd);
 			f = f->next;
 		}
+	}
+	else if (verbose) {
+		printf("%s up to date\n", file);
 	}
 	free(target);
 }
@@ -169,6 +195,9 @@ copy_file(char *file)
 	char *target = make_outpath(file);
 
 	if (outdated(target, 1, file)) {
+		if (verbose) {
+			printf("%s outdated, applying filters\n", file);
+		}
 		char fmt[] = "cp %s %s";
 		char *cmd;
 
@@ -181,7 +210,9 @@ copy_file(char *file)
 		system(cmd);
 		free(cmd);
 	}
-
+	else if (verbose) {
+		printf("%s up to date\n", file);
+	}
 	free(target);
 }
 
@@ -196,7 +227,13 @@ make_outpath(const char *file)
 	}
 
 	strcpy(target, file);
+	if (verbose >= 2) {
+		printf("make_outpath: target = %s\n", target);
+	}
 	strnswp(target, src->path, tgt->path, len);
+	if (verbose >= 2) {
+		printf("make_outpath: target = %s\n", target);
+	}
 
 	/*
 	 * TODO: find a better way to determine if the suffix needs
@@ -209,12 +246,24 @@ make_outpath(const char *file)
 			err(errno, "malloc failed");
 		}
 		strcpy(tmp, target);
+		if (verbose >= 2) {
+			printf("make_outpath: tmp = %s\n", target);
+		}
 		strnswp(tmp, ext->value, sfx->value, len);
+		if (verbose >= 2) {
+			printf("make_outpath: tmp = %s\n", target);
+		}
 		free(target);
 		target = tmp;
+		if (verbose >= 2) {
+			printf("make_outpath: target = %s\n", target);
+		}
 	}
 
 	dag_mkdir(dirname(target));
+	if (verbose >= 2) {
+		printf("make_outpath(%s) = %s\n", file, target);
+	}
 	return target;
 }
 
@@ -224,9 +273,18 @@ outdated(char *dest, int nsrc, ...)
 	va_list ap;
 	struct stat d_sb, s_sb;
 	int rv = 1;
+	int r;
 
-	if (stat(dest, &d_sb) != 0) {
+	if ((r = stat(dest, &d_sb)) != 0) {
+		if (verbose) {
+			printf("stat(%s): %d\n", dest, r);
+		}
 		return rv;
+	}
+	else {
+		if (verbose) {
+			printf("stat(%s): %d\n", dest, r);
+		}
 	}
 
 	va_start(ap, nsrc);

@@ -38,7 +38,7 @@ struct dagfile {
 	struct target *target;
 };
 
-int process_dagfile(struct dagfile *df);
+int process_dagfile(struct dagfile *df, int verbose);
 void free_dagfile(struct dagfile *df);
 struct dagfile *parse_dagfile(FILE *path);
 void debug_dagfile(struct dagfile *df);

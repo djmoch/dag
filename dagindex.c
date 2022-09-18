@@ -91,6 +91,9 @@ populate_time(char *time_str)
 	char *ep;
 
 	if (time_str) {
+		if (verbose >= 2) {
+			fprintf(stderr, "time_str: %s\n", time_str);
+		}
 		time = strtoll(time_str, &ep, 10);
 		if (time_str[0] != '\0' && *ep == '\0') {
 			return time;

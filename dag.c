@@ -57,7 +57,7 @@ main(int argc, char **argv)
 			usage(ERR_NONE);
 			break;
 		case 'v':
-			verbose = 1;
+			verbose += 1;
 			break;
 		case 'V':
 			printf("%s %s\n", argv0, VERSION);
@@ -90,7 +90,7 @@ main(int argc, char **argv)
 		debug_dagfile(dagfile);
 	}
 
-	retval = process_dagfile(dagfile);
+	retval = process_dagfile(dagfile, verbose);
 
 	free_dagfile(dagfile);
 
