@@ -48,7 +48,7 @@ DIST_SRC = dag.c \
 
 DOBJ = ${DSRC:.c=.o}
 IOBJ = ${ISRC:.c=.o}
-LIBS = -ll -ly
+LIBS = -ll
 
 CPPFLAGS := -DVERSION=\"${VERSION}\" -D_BSD_SOURCE
 CFLAGS := -std=c99 -pedantic-errors -Wall -Wextra -Werror -O0 -g -c -pipe
