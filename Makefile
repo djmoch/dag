@@ -11,8 +11,10 @@ y.tab.o: y.tab.c y.tab.h
 lex.yy.o: lex.yy.c y.tab.h
 	${CC} -c -o lex.yy.o lex.yy.c
 
-.c.o: ${HDRS}
+.c.o:
 	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ $<
+
+${DOBJ} ${IOBJ}: ${HDRS}
 
 y.tab.h y.tab.c: parse.y
 	yacc -d parse.y
