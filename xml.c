@@ -40,7 +40,6 @@ xml_db_fmt_sitemapindex(char *fqdn, struct db_index *index)
 	puts("</sitemap>");
 	puts("</sitemapindex>");
 
-	free(mod);
 	free(xfqdn);
 }
 
